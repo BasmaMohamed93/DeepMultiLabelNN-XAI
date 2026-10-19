@@ -12,7 +12,10 @@ SEV = ['transcript_ablation', 'splice_acceptor_variant', 'splice_donor_variant',
 rank = {c: i for i, c in enumerate(SEV)}
 
 
-def build(drop_level4=True, exclude_drugs=(), sources=None, drop_levels=()):
+CFG = {'freq': True, 'miss': True}   # feature switches for the source-confounding analyses
+
+
+def build(drop_level4=True, exclude_drugs=(), sources=None, drop_levels=(), variants_keep=None, clinvar_min_star=False):
     flow = {}
     L = pd.read_csv('label_records_raw.csv')
     flow['label_records_raw'] = len(L)
@@ -22,6 +25,10 @@ def build(drop_level4=True, exclude_drugs=(), sources=None, drop_levels=()):
     if drop_levels:
         L = L[~L.level.astype(str).isin(drop_levels)]
     L = L[~L.drug.isin(exclude_drugs)]
+    if clinvar_min_star:   # keep ClinVar records only when assertion criteria were provided (review status >= 1 star)
+        cv = pd.read_csv('clinvar_review_status.csv')
+        ok = set(cv[~cv.CLNREVSTAT.astype(str).str.contains('no_assertion')].rs)
+        L = L[(L.source != 'ClinVar') | L.variant.isin(ok)]
     if sources is not None:
         L = L[L.source.isin(sources)]
     P = L.drop_duplicates(['variant', 'drug'])
@@ -38,6 +45,8 @@ def build(drop_level4=True, exclude_drugs=(), sources=None, drop_levels=()):
     flow['vep_unique_variants'] = len(v)
 
     P = P[P.variant.isin(v.index)]
+    if variants_keep is not None:
+        P = P[P.variant.isin(set(variants_keep))]
     flow['pairs_with_vep'] = len(P)
     # gene: VEP canonical gene, fallback to label-source gene
     gmap = v.gene_symbol.dropna().to_dict()
@@ -94,8 +103,8 @@ class VepFeatures:
         Z = ((X.fillna(self.med) - self.mu) / self.sd).astype(np.float32)
         func = [c for c in self.NUM if c not in fc]
         if 'functional' in self.groups:
-            B += [Z[func].values, miss[func].values]
-            names += [f'num:{c}' for c in func] + [f'missing:{c}' for c in func]
+            B += [Z[func].values]; names += [f'num:{c}' for c in func]
+            if CFG['miss']: B += [miss[func].values]; names += [f'missing:{c}' for c in func]
             for c in ['sift_prediction', 'polyphen_prediction']:
                 B.append(np.stack([(V[c].astype(str).fillna('nan') == x).values for x in self.cat[c]], 1).astype(np.float32))
                 names += [f'{c}={x}' for x in self.cat[c]]
@@ -103,9 +112,9 @@ class VepFeatures:
             B.append(np.stack([(aa.str[0] == a).values for a in self.aa], 1).astype(np.float32))
             B.append(np.stack([(aa.str[-1] == a).values for a in self.aa], 1).astype(np.float32))
             names += [f'aa_ref:{a}' for a in self.aa] + [f'aa_alt:{a}' for a in self.aa]
-        if 'frequency' in self.groups:
-            B += [Z[fc].values, miss[fc].values]
-            names += [f'num:{c}' for c in fc] + [f'missing:{c}' for c in fc]
+        if 'frequency' in self.groups and CFG['freq']:
+            B += [Z[fc].values]; names += [f'num:{c}' for c in fc]
+            if CFG['miss']: B += [miss[fc].values]; names += [f'missing:{c}' for c in fc]
         if 'consequence' in self.groups:
             for c in ['variant_class', 'impact', 'biotype', 'most_severe_consequence']:
                 B.append(np.stack([(V[c].astype(str).fillna('nan') == x).values for x in self.cat[c]], 1).astype(np.float32))

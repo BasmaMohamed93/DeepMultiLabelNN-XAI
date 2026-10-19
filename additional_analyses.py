@@ -1,4 +1,4 @@
-"""Additional analyses: (a) architecture ablation of the residual network on the variant-level data,
+"""Analyses added for Reviewer 3: (a) architecture ablation of the residual network on the variant-level data,
 (b) random-forest multi-label baseline, (c) label-vocabulary check using training partitions only, (d) parameter count."""
 import sys, os, json, warnings
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -33,7 +33,7 @@ if stage in ('ablation', 'all'):
            'no_label_smoothing': {'smoothing': 0.0}, 'no_class_weights': {'class_weight': False}, 'no_cosine_annealing': {'cosine': False},
            'no_early_stopping': {'early_stop': False}}
     rows = []
-    out = 'arch_ablation.csv'
+    out = 'r3_arch_ablation.csv'
     done = pd.read_csv(out) if os.path.exists(out) else pd.DataFrame()
     for st in ['A_random', 'B_gene_disjoint']:
         for s in range(5):
@@ -55,7 +55,7 @@ if stage in ('rf', 'all'):
             rf = RandomForestClassifier(n_estimators=500, min_samples_leaf=2, max_features='sqrt', n_jobs=2, random_state=s).fit(Xt, Y[tr])
             P = lambda X: np.column_stack([p[:, 1] if p.shape[1] == 2 else np.zeros(len(X)) for p in rf.predict_proba(X)])
             r = dict(setting=st, seed=s, **evaluate(Y[va], P(Xv), Y[te], P(Xs), G[te], s)); rows.append(r); print(r, flush=True)
-    D = pd.DataFrame(rows); D.to_csv('random_forest.csv', index=False)
+    D = pd.DataFrame(rows); D.to_csv('r3_random_forest.csv', index=False)
     print(D.groupby('setting').mean(numeric_only=True).drop(columns='seed').round(3).to_string())
 
 if stage in ('labelcheck', 'all'):
@@ -73,7 +73,7 @@ if stage in ('labelcheck', 'all'):
             au = np.array([roc_auc_score(Ys[:, j], Ps[:, j]) if 0 < Ys[:, j].sum() < len(Ys) else np.nan for j in range(len(drugs))])
             rows.append(dict(setting=st, seed=s, n_drugs=len(drugs), pass_train_only=int(ok.sum()), macro_auroc_all=np.nanmean(au),
                              macro_auroc_pass=np.nanmean(au[ok]), macro_auroc_fail=np.nanmean(au[~ok]) if (~ok).any() else np.nan))
-    D = pd.DataFrame(rows); D.to_csv('label_vocabulary_check.csv', index=False)
+    D = pd.DataFrame(rows); D.to_csv('r3_label_vocabulary_check.csv', index=False)
     print(D.groupby('setting').mean(numeric_only=True).drop(columns='seed').round(3).to_string())
 
 if stage in ('params', 'all'):

@@ -11,7 +11,6 @@ import sys, os, glob, json, subprocess
 import numpy as np, pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__)); os.chdir(HERE)
-os.makedirs('figures', exist_ok=True)
 
 if '--tables' not in sys.argv:
     import model

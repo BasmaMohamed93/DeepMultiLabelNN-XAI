@@ -1,4 +1,4 @@
-"""Collect every number used in the manuscript into numbers.json (single source for the Word documents)."""
+"""Collect every number used in the manuscript / response into numbers.json (single source for the Word documents)."""
 import json, glob
 import numpy as np, pandas as pd
 

@@ -43,10 +43,10 @@ def knn_prior(X, genes, Y, q, r, ks=(10, 30)):
     return out
 
 
-def xgb_bin(At, yt, Av, yv, seed, depth):
+def xgb_bin(At, yt, Av, yv, seed, depth, w=None):
     return xgb.XGBClassifier(n_estimators=2000, learning_rate=0.04, max_depth=depth, min_child_weight=2, subsample=0.8,
                              colsample_bytree=0.6, tree_method='hist', max_bin=128, early_stopping_rounds=60,
-                             eval_metric='logloss', n_jobs=2, random_state=seed).fit(At, yt, eval_set=[(Av, yv)], verbose=False)
+                             eval_metric='logloss', n_jobs=2, random_state=seed).fit(At, yt, sample_weight=w, eval_set=[(Av, yv)], verbose=False)
 
 
 def xgb_rank(At, yt, qt, Av, yv, qv, seed):
@@ -78,16 +78,39 @@ def balanced_threshold(Y, P, rng, reps=10):
     return float(grid[sc.argmax()])
 
 
-def run(dataset, setting, seed, use_region=True, use_rank=False, use_knn=True, out_dir='results'):
-    tag = f'{dataset}_{setting}_{seed}_region={use_region}_rank={use_rank}' + ('_knn=True' if use_knn else '')
+def run(dataset, setting, seed, use_region=True, use_rank=False, use_knn=True, out_dir='results', feat='full', variants_keep=None, mask_frac=0.0, pu_weight=None):
+    tag = f'{dataset}_{setting}_{seed}_region={use_region}_rank={use_rank}' + ('_knn=True' if use_knn else '') + ('' if feat == 'full' else f'_feat={feat}') + ('' if not mask_frac else f'_mask={mask_frac}') + ('' if pu_weight is None else f'_pu={pu_weight}')
+    from build_dataset import CFG
+    CFG['miss'] = feat == 'full'; CFG['freq'] = feat in ('full', 'nomiss')
     fn = f'{out_dir}/{tag}.json'
     if os.path.exists(fn): return json.load(open(fn))
     t0 = time.time()
-    kw = {'all': {}, 'no_tramadol': {'exclude_drugs': ('tramadol',)}, 'pharmgkb_only': {'sources': ('PharmGKB_CA', 'PharmGKB_VA')}, 'high_evidence': {'drop_levels': ('3',)}}[dataset]
+    kw = {'all': {}, 'no_tramadol': {'exclude_drugs': ('tramadol',)}, 'pharmgkb_only': {'sources': ('PharmGKB_CA', 'PharmGKB_VA')}, 'high_evidence': {'drop_levels': ('3',)}, 'high_evidence_no_tramadol': {'drop_levels': ('3',), 'exclude_drugs': ('tramadol',)}, 'high_evidence_strict': {'drop_levels': ('3',), 'clinvar_min_star': True}}.get(dataset, {})
+    if variants_keep is not None: kw = dict(kw, variants_keep=variants_keep)
     V, Y, drugs, _ = build(**kw)
     genes = np.array([g if isinstance(g, str) else 'NA' for g in V.gene], dtype=object)
     chrom = V.seq_region_name.astype(str).values; pos = V.start.astype(float).values
-    tr, va, te = random_split(Y, seed) if setting == 'A_random' else gene_split(genes, Y, seed)
+    Y_orig = Y
+    if setting == 'A_random': tr, va, te = random_split(Y, seed)
+    elif setting == 'D_temporal':   # pairs first curated (PharmGKB clinical annotation created) from 2021 onwards are hidden
+        import pandas as _pd
+        H = _pd.read_csv('temporal_pairs.csv'); vi = {v: i for i, v in enumerate(V.index)}
+        hid = [(vi[v], drugs.index(d)) for v, d in zip(H.variant, H.drug) if v in vi and d in drugs]
+        te = np.array(sorted({i for i, _ in hid})); other = np.setdiff1d(np.arange(len(V)), te)
+        o = np.random.default_rng(seed).permutation(other); nv = int(round(0.125 * len(o))); va, tr = np.sort(o[:nv]), np.sort(o[nv:])
+        Yh = Y.copy()
+        for i, j in hid: Yh[i, j] = 0
+        Y = Yh
+    elif setting == 'C_locus_disjoint':
+        from splits import locus_ids
+        tr, va, te = gene_split(locus_ids(chrom, pos, genes), Y, seed)
+    else: tr, va, te = gene_split(genes, Y, seed)
+    Ytrue = Y if setting != 'D_temporal' else Y_orig
+    if mask_frac:   # PU sensitivity: hide a fraction of training/validation positives (treated as unlabelled); test labels unchanged
+        Y = Y.copy(); rm = np.random.default_rng(seed + 900)
+        for part in (tr, va):
+            pi, pj = np.where(Y[part] > 0); h = rm.random(len(pi)) < mask_frac
+            Y[part[pi[h]], pj[h]] = 0
     fb = VepFeatures().fit(V.iloc[tr]); Xt, Xv_, Xs = (fb.transform(V.iloc[i])[0] for i in (tr, va, te))
     nd = len(drugs)
     K = pair_features(genes, drugs, *DG)
@@ -110,9 +133,10 @@ def run(dataset, setting, seed, use_region=True, use_rank=False, use_knn=True, o
     Gt, Gv, Gs, p0 = gene_prior(genes, Y, tr, va, te, seed)
     At, Av, As = to_pairs(Xt, K[tr], Gt, p0, nd), to_pairs(Xv_, K[va], Gv, p0, nd), to_pairs(Xs, K[te], Gs, p0, nd)
     yt, yv = Y[tr].ravel(), Y[va].ravel()
+    wt = None if pu_weight is None else np.where(yt > 0, 1.0, pu_weight)   # PU variant: unlabelled pairs down-weighted
     best = None
     for depth in (4, 6):
-        m = xgb_bin(At, yt, Av, yv, seed, depth)
+        m = xgb_bin(At, yt, Av, yv, seed, depth, wt)
         if best is None or m.best_score < best[0]: best = (m.best_score, m, depth)
     m1 = best[1]
     Pv = {'xgb': m1.predict_proba(Av)[:, 1]}; Ps = {'xgb': m1.predict_proba(As)[:, 1]}
@@ -120,7 +144,7 @@ def run(dataset, setting, seed, use_region=True, use_rank=False, use_knn=True, o
     nn, _ = nn_fit(Xt, Y[tr], Xv_, Y[va], seed)
     E = lambda X: np.hstack([nn.embed(X), X])
     Bt, Bv, Bs = to_pairs(E(Xt), K[tr], Gt, p0, nd), to_pairs(E(Xv_), K[va], Gv, p0, nd), to_pairs(E(Xs), K[te], Gs, p0, nd)
-    m2 = xgb_bin(Bt, yt, Bv, yv, seed + 1, best[2])
+    m2 = xgb_bin(Bt, yt, Bv, yv, seed + 1, best[2], wt)
     Pv['hyb'] = m2.predict_proba(Bv)[:, 1]; Ps['hyb'] = m2.predict_proba(Bs)[:, 1]
     Pv['nn'] = np.asarray(nn.predict_proba(Xv_)).ravel(); Ps['nn'] = np.asarray(nn.predict_proba(Xs)).ravel()
     if use_rank:
@@ -137,7 +161,7 @@ def run(dataset, setting, seed, use_region=True, use_rank=False, use_knn=True, o
     Pv_st = cross_val_predict(st, Fv, yv, cv=GroupKFold(5), groups=np.repeat(np.arange(len(va)), nd), method='predict_proba')[:, 1]
     st.fit(Fv, yv); Ps_st = st.predict_proba(Fs)[:, 1]
     PV, PS = Pv_st.reshape(len(va), nd), Ps_st.reshape(len(te), nd)
-    Yv, Ys = Y[va], Y[te]
+    Yv, Ys = Y[va], Ytrue[te]
     name, th, ft = choose_decoding(Yv, PV); B = decode(PS, th, ft)
     res = dec_metrics(Ys, B); Mt = metrics(Ys, PS, th)
     res.update(macro_auroc=Mt['macro_auroc'], micro_auroc=Mt['micro_auroc'], macro_auprc=Mt['macro_auprc'])

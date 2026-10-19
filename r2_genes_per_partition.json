@@ -1,0 +1,42 @@
+{
+ "all|A_random": [
+  795.0,
+  178.0,
+  317.0
+ ],
+ "all|B_gene_disjoint": [
+  680.0,
+  104.0,
+  205.0
+ ],
+ "high_evidence|A_random": [
+  271.0,
+  70.0,
+  118.0
+ ],
+ "high_evidence|B_gene_disjoint": [
+  232.0,
+  32.0,
+  74.0
+ ],
+ "pharmgkb_only|A_random": [
+  753.0,
+  171.0,
+  312.0
+ ],
+ "pharmgkb_only|B_gene_disjoint": [
+  667.0,
+  100.0,
+  196.0
+ ],
+ "no_tramadol|A_random": [
+  783.0,
+  176.0,
+  312.0
+ ],
+ "no_tramadol|B_gene_disjoint": [
+  680.0,
+  103.0,
+  201.0
+ ]
+}

@@ -15,6 +15,27 @@ def gene_split(genes, Y, seed, fr=(0.7, 0.1, 0.2)):
     return [np.where(f == k)[0] for k in range(3)]
 
 
+def locus_ids(chrom, pos, genes, gap=1e6):
+    """Locus groups: variants on the same chromosome closer than `gap` (single linkage), merged with their genes,
+    so that no two variants in different groups are within `gap` of each other or share a gene."""
+    n = len(chrom); par = list(range(n))
+    def f(a):
+        while par[a] != a: par[a] = par[par[a]]; a = par[a]
+        return a
+    def u(a, b):
+        ra, rb = f(a), f(b)
+        if ra != rb: par[ra] = rb
+    for c in np.unique(chrom):
+        i = np.where(chrom == c)[0]; o = i[np.argsort(pos[i])]
+        for a, b in zip(o[:-1], o[1:]):
+            if pos[b] - pos[a] <= gap: u(a, b)
+    first = {}
+    for i, g in enumerate(genes):
+        if g in first: u(i, first[g])
+        else: first[g] = i
+    return np.array([f(i) for i in range(n)])
+
+
 def random_split(Y, seed, fr=(0.7, 0.1, 0.2)):
     f = iterative_stratify(Y, fr, np.random.default_rng(seed))
     return [np.where(f == k)[0] for k in range(3)]

@@ -25,7 +25,7 @@ EXCLUDED_SOURCES = ('PharmGKB', 'FDA')
 
 
 def dgidb_table():
-    d = pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interactions.csv.xz'), low_memory=False).dropna(subset=['gene_name', 'drug_name'])
+    d = pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interactions.csv'), low_memory=False).dropna(subset=['gene_name', 'drug_name'])
     d = d[~d.interaction_source_db_name.isin(EXCLUDED_SOURCES)].copy()
     d['drug'] = d.drug_name.str.lower().str.strip()
     d2 = d.copy(); d2['drug'] = d.drug_claim_name.astype(str).str.lower().str.strip()
@@ -58,7 +58,7 @@ def pair_features(genes, drugs, G, gene_deg, drug_deg):
 
 
 def dgidb_sets():
-    d = pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interactions.csv.xz'), low_memory=False).dropna(subset=['gene_name', 'drug_name'])
+    d = pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interactions.csv'), low_memory=False).dropna(subset=['gene_name', 'drug_name'])
     d = d[~d.interaction_source_db_name.isin(EXCLUDED_SOURCES)]
     d['drug'] = d.drug_name.str.lower().str.strip()
     return d.groupby('gene_name').drug.apply(set).to_dict(), d.groupby('drug').gene_name.apply(set).to_dict()

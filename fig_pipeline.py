@@ -60,7 +60,7 @@ band(66, '4  Model')
 box(5, 60, 43, 33, 'Knowledge priors (out-of-fold)', ['Gene prior: training label rate of', '  the drug in the variant\'s gene',
     'DGIdb gene-drug: 6 pair features', 'Similar-gene prior: top-10 genes', '  by DGIdb drug-profile Jaccard',
     'Similar-drug prior: target-set', '  Jaccard x gene label rates'], 'know', fs=8.5)
-box(5, 32, 43, 25, 'Graph-propagated priors (out-of-fold)', ['Regional / LD prior: label rate of', '  training variants within 1 kb, 10 kb,',
+box(5, 32, 43, 25, 'Graph-propagated priors (out-of-fold)', ['Regional genomic prior: label rate of', '  training variants within 1 kb, 10 kb,',
     '  100 kb, 1 Mb (same position excl.)', 'Feature-space kNN prior: k = 10, 30', '  and same-gene kernel on VEP features'], 'new', fs=8.5)
 box(53, 78, 50, 15, 'Pairwise instances', ['one row per (variant, drug): 3,904 x 60', 'variant features + drug one-hot +', 'all priors + drug prevalence'], 'model', fs=8.6)
 box(53, 55, 15, 18, 'Branch 1', ['XGBoost', 'binary,', 'pairwise'], 'model', fs=8.4, tfs=9.6)

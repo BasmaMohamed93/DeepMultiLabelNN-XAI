@@ -1,7 +1,7 @@
-"""Variant-level drug labels from ClinVar drug_response + PharmGKB/ClinPGx (clinical & variant annotations).
-Input files (public releases, see Table 1 of the article) are read from raw/; the output label_records_raw.csv is included in this repository."""
+"""Variant-level drug labels from ClinVar drug_response + PharmGKB (clinical & variant annotations) + CIViC."""
 import gzip, re, json, collections
 import pandas as pd
+U='/root/.claude/uploads/d2f5ae1c-61c2-545b-8d3e-5eafb71533d5/'
 R='raw/'
 def norm(d):
     d=d.strip().lower()
@@ -11,7 +11,7 @@ def norm(d):
 recs=[]  # (rs, drug, gene, source, level, category)
 # ---- ClinVar drug_response
 cv=[]
-for l in gzip.open(R+'clinvar_pgx.vcf.gz','rt'):
+for l in gzip.open(U+'6ab94aa4-clinvar_pgx.vcf.gz','rt'):
     if l[0]=='#': continue
     c,p,i,ref,alt,_,_,info=l.rstrip('\n').split('\t')[:8]
     d=dict(x.split('=',1) if '=' in x else (x,'1') for x in info.split(';'))
@@ -24,14 +24,14 @@ for l in gzip.open(R+'clinvar_pgx.vcf.gz','rt'):
                 recs.append((rs,norm(t.replace('_response','').replace('_',' ').replace(' response','')),d.get('GENEINFO','').split(':')[0],'ClinVar','CV',cat))
 cv=pd.DataFrame(cv); cv.to_csv('clinvar_pgx_records.csv',index=False)
 # ---- PharmGKB clinical annotations
-ca=pd.read_csv(R+'clinical_annotations.tsv',sep='\t')
+ca=pd.read_csv(R+'25eff430-clinicalAnnotations_1/clinical_annotations.tsv',sep='\t')
 ca=ca[ca['Variant/Haplotypes'].str.match(r'^rs\d+$',na=False)]
 for _,r in ca.iterrows():
     for dr in re.split(r'[;/]',str(r['Drug(s)'])):
         if dr.strip() and dr!='nan':
             recs.append((r['Variant/Haplotypes'],norm(dr),r.Gene,'PharmGKB_CA',str(r['Level of Evidence']),str(r['Phenotype Category']).lower()))
 # ---- PharmGKB variant annotations (significant only)
-va=pd.read_csv(R+'var_drug_ann.tsv',sep='\t')
+va=pd.read_csv(R+'ddecc963-variantAnnotations_1/var_drug_ann.tsv',sep='\t')
 va=va[va['Variant/Haplotypes'].str.match(r'^rs\d+$',na=False)&(va.Significance=='yes')&(va['Is/Is Not associated']=='Associated with')]
 for _,r in va.iterrows():
     for dr in re.split(r'[;/]',str(r['Drug(s)'])):
@@ -41,3 +41,8 @@ L=pd.DataFrame(recs,columns=['variant','drug','gene','source','level','category'
 L['gene']=L.gene.astype(str).str.split(r'[ ,(]').str[0]
 L.to_csv('label_records_raw.csv',index=False)
 print('raw records',len(L)); print(L.groupby('source').agg(n=('variant','size'),variants=('variant','nunique'),drugs=('drug','nunique')))
+# ---- CIViC: overview only (somatic, mostly not rsID based)
+civ=pd.read_csv(U+'4d3a67e3-nightly-ClinicalEvidenceSummaries.tsv',sep='\t',low_memory=False)
+cvs=pd.read_csv(U+'a8fd887e-nightly-VariantSummaries.tsv',sep='\t',low_memory=False)
+pred=civ[civ.evidence_type.eq('Predictive')&civ.evidence_status.eq('accepted')]
+print('CIViC predictive accepted',len(pred),'variants w/ coords',cvs[['chromosome','start','reference_bases','variant_bases']].dropna().shape[0])

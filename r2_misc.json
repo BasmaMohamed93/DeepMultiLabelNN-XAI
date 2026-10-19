@@ -1,0 +1,83 @@
+{
+ "all|A_random": {
+  "regional_coverage": {
+   "1000": 0.578,
+   "10000": 0.721,
+   "100000": 0.834,
+   "1000000": 0.919
+  },
+  "regional_coverage_with_positive_neighbour": {
+   "1000": 0.578,
+   "10000": 0.721,
+   "100000": 0.834,
+   "1000000": 0.919
+  },
+  "within_gene_groups_mean": 181.2,
+  "within_gene_groups_range": [
+   172,
+   189
+  ]
+ },
+ "all|B_gene_disjoint": {
+  "regional_coverage": {
+   "1000": 0.01,
+   "10000": 0.074,
+   "100000": 0.22,
+   "1000000": 0.73
+  },
+  "regional_coverage_with_positive_neighbour": {
+   "1000": 0.01,
+   "10000": 0.074,
+   "100000": 0.22,
+   "1000000": 0.73
+  },
+  "within_gene_groups_mean": 184.0,
+  "within_gene_groups_range": [
+   150,
+   219
+  ]
+ },
+ "high_evidence|A_random": {
+  "regional_coverage": {
+   "1000": 0.757,
+   "10000": 0.853,
+   "100000": 0.903,
+   "1000000": 0.925
+  },
+  "regional_coverage_with_positive_neighbour": {
+   "1000": 0.757,
+   "10000": 0.853,
+   "100000": 0.903,
+   "1000000": 0.925
+  },
+  "within_gene_groups_mean": 34.2,
+  "within_gene_groups_range": [
+   27,
+   41
+  ]
+ },
+ "high_evidence|B_gene_disjoint": {
+  "regional_coverage": {
+   "1000": 0.039,
+   "10000": 0.271,
+   "100000": 0.37,
+   "1000000": 0.617
+  },
+  "regional_coverage_with_positive_neighbour": {
+   "1000": 0.039,
+   "10000": 0.271,
+   "100000": 0.37,
+   "1000000": 0.617
+  },
+  "within_gene_groups_mean": 31.0,
+  "within_gene_groups_range": [
+   25,
+   41
+  ]
+ },
+ "multiallelic": {
+  "variants": 3904,
+  "multiallelic": 470,
+  "share": 0.12
+ }
+}

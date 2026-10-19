@@ -1,0 +1,76 @@
+seed,group,share
+0,Amino-acid change,0.02100943773984909
+0,BLOSUM62,0.003037717891857028
+0,CADD,0.01753094233572483
+0,Consequence / impact / class,0.026332365348935127
+0,DGIdb gene-drug knowledge,0.03171183913946152
+0,Distance to gene,0.008839940652251244
+0,Drug identity,0.03986414521932602
+0,Drug prevalence,0.009639973752200603
+0,Feature-space kNN prior,0.06817635148763657
+0,Gene prior (training labels),0.14429287612438202
+0,Population frequency,0.3039097487926483
+0,Regional genomic prior,0.26800084114074707
+0,SIFT/PolyPhen,0.00915755145251751
+0,Similar-drug prior (DGIdb targets),0.019841983914375305
+0,Similar-gene prior (DGIdb),0.02865423820912838
+1,Amino-acid change,0.018136946484446526
+1,BLOSUM62,0.0040719895623624325
+1,CADD,0.015407893806695938
+1,Consequence / impact / class,0.030021948739886284
+1,DGIdb gene-drug knowledge,0.034215159714221954
+1,Distance to gene,0.004337565507739782
+1,Drug identity,0.03136291727423668
+1,Drug prevalence,0.010063688270747662
+1,Feature-space kNN prior,0.06562051177024841
+1,Gene prior (training labels),0.1676364243030548
+1,Population frequency,0.2790110409259796
+1,Regional genomic prior,0.28784245252609253
+1,SIFT/PolyPhen,0.005288315936923027
+1,Similar-drug prior (DGIdb targets),0.012810243293642998
+1,Similar-gene prior (DGIdb),0.03417288511991501
+2,Amino-acid change,0.02910468727350235
+2,BLOSUM62,0.002063173335045576
+2,CADD,0.021147919818758965
+2,Consequence / impact / class,0.033784374594688416
+2,DGIdb gene-drug knowledge,0.033099714666604996
+2,Distance to gene,0.003119527827948332
+2,Drug identity,0.03971860557794571
+2,Drug prevalence,0.012715485878288746
+2,Feature-space kNN prior,0.06691741198301315
+2,Gene prior (training labels),0.1349295675754547
+2,Population frequency,0.2749945819377899
+2,Regional genomic prior,0.3041019141674042
+2,SIFT/PolyPhen,0.008224333636462688
+2,Similar-drug prior (DGIdb targets),0.011599740013480186
+2,Similar-gene prior (DGIdb),0.024478904902935028
+3,Amino-acid change,0.015435697510838509
+3,BLOSUM62,0.004278345964848995
+3,CADD,0.020994365215301514
+3,Consequence / impact / class,0.03948170691728592
+3,DGIdb gene-drug knowledge,0.03198973834514618
+3,Distance to gene,0.0059977187775075436
+3,Drug identity,0.042373400181531906
+3,Drug prevalence,0.012323234230279922
+3,Feature-space kNN prior,0.03974215313792229
+3,Gene prior (training labels),0.1517096757888794
+3,Population frequency,0.3025481700897217
+3,Regional genomic prior,0.27626946568489075
+3,SIFT/PolyPhen,0.011994130909442902
+3,Similar-drug prior (DGIdb targets),0.01499219425022602
+3,Similar-gene prior (DGIdb),0.02987007237970829
+4,Amino-acid change,0.016826750710606575
+4,BLOSUM62,0.0038287073839455843
+4,CADD,0.016179757192730904
+4,Consequence / impact / class,0.03716247156262398
+4,DGIdb gene-drug knowledge,0.033384256064891815
+4,Distance to gene,0.003772611729800701
+4,Drug identity,0.03692536801099777
+4,Drug prevalence,0.013279762119054794
+4,Feature-space kNN prior,0.05730555206537247
+4,Gene prior (training labels),0.1017254963517189
+4,Population frequency,0.3008512258529663
+4,Regional genomic prior,0.31768742203712463
+4,SIFT/PolyPhen,0.007699618581682444
+4,Similar-drug prior (DGIdb targets),0.02161211334168911
+4,Similar-gene prior (DGIdb),0.0317588672041893

@@ -2,7 +2,7 @@
 
 Explainable hybrid deep learning-machine learning framework for variant-level pharmacogenomic drug-association prediction.
 A residual neural network (deep-learning component) and gradient-boosted trees (machine-learning component) are coupled through the
-network's embedding and a stacking layer fitted on validation data; knowledge priors and graph-propagated (regional/linkage and
+network's embedding and a stacking layer fitted on validation data; knowledge priors and graph-propagated (regional genomic and
 feature-space nearest-neighbour) priors are computed out-of-fold. Evaluation uses known-gene and gene-disjoint splits over five seeds.
 
 ## Quick start
@@ -16,10 +16,7 @@ feature-space nearest-neighbour) priors are computed out-of-fold. Evaluation use
 |---|---|
 | label_records_raw.csv | Variant-level evidence records: ClinVar drug_response + PharmGKB/ClinPGx clinical (levels 1A-3) and variant annotations (built by labels.py from the public releases) |
 | vep.csv.gz | Ensembl VEP annotation of every rsID |
-| interactions.csv.xz | DGIdb gene-drug interactions (PharmGKB- and FDA-sourced rows are removed inside pairwise.py) |
-
-label_records_raw.csv can be rebuilt with labels.py from the public releases placed in raw/: the ClinVar GRCh37 VCF restricted to
-drug_response records (clinvar_pgx.vcf.gz) and the PharmGKB/ClinPGx files clinical_annotations.tsv and var_drug_ann.tsv.
+| interactions.csv | DGIdb gene-drug interactions (PharmGKB- and FDA-sourced rows are removed inside pairwise.py) |
 
 ## Code
 | File | Purpose |
@@ -45,6 +42,28 @@ results/ (every run of the proposed model and ablations, with predictions of the
 scores), results_pair/ (two-branch ensemble used for comparison).
 
 All thresholds, early stopping, stacking weights and hyperparameters use only the validation partition; each test partition is scored once.
+
+## Second revision (analyses requested in decision 2)
+| File | Purpose |
+|---|---|
+| r2_runs.py, r2_runs2.py, r2_queue.py, r2_queue2.py | Retraining runs: without tramadol, without frequency features, masked positives, PU weighting, strict ClinVar set, locus-disjoint (C) and temporal (D) settings -> results_r2/ |
+| r2_summary.py | Summary of all revision runs -> r2_all_runs.csv, r2_summary.txt |
+| r2_analyses.py | Source-matched and source-stratified evaluation -> r2_subset_eval.csv |
+| r2_source_auc.py | Source-classifier AUROC -> r2_source_auc.json |
+| r2_alleles.py, r2_allele_eval.py | Multi-allelic rsIDs and allele-matched evaluation -> allele_status.json, r2_allele_eval.csv |
+| r2_misc.py | Regional-prior coverage and within-gene group counts -> r2_misc.json |
+| r2_stats.py | Paired differences with Nadeau-Bengio corrected intervals and d_z -> r2_framework_vs_xgb.csv, r2_framework_vs_geneonly.csv |
+| r2_metrics_extra.py | Negative-sampling ratios, precision/recall@k, micro AUPRC, calibration slope/intercept |
+| r2_temporal_eval.py | Temporal hold-out ranks -> r2_temporal_ranks.csv |
+| r2_curated.py | PharmGKB level-1A/1B consistency check with tied ranks shared -> r2_curated_check.csv |
+| r2_xai_stability.py | TreeSHAP and TCAV across five seeds -> r2_treeshap_seeds.csv, r2_tcav_seeds.csv |
+| r2_drug_rule.py | Drug-retention rule recomputed on training data -> r2_drug_rule.csv |
+| r2_split_counts.py | Per-split, per-drug positive counts -> split_positive_counts.csv |
+| fig_r2.py | Figure 5 (multi-seed) and Supplementary Figures S1-S2 |
+| make_ci.py | 95% confidence intervals for every value of Table 10 -> final_runs.csv, ci.csv |
+
+Data files added: matched_variants.json, temporal_pairs.csv, clinvar_review_status.csv, allele_status.json.
+Environment: Python 3.11, NumPy 2.4.4, pandas 3.0.2, SciPy 1.17.1, scikit-learn 1.8.0, XGBoost 2.1.4 (Linux, two CPU cores, no GPU).
 
 ## Citation
 [[add the article reference after publication]]

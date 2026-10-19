@@ -1,0 +1,13 @@
+{
+ "all|full": 0.973,
+ "all|no_missingness_indicators": 0.972,
+ "all|no_frequency_features": 0.808,
+ "no_tramadol|full": 0.913,
+ "no_tramadol|no_missingness_indicators": 0.907,
+ "no_tramadol|no_frequency_features": 0.815,
+ "matched_subset|full": 0.447,
+ "missing_gnomADg_ClinVar": 0.702,
+ "missing_gnomADg_PharmGKB": 0.017,
+ "missing_gnomADg_matched_ClinVar": 0.235,
+ "missing_gnomADg_matched_PharmGKB": 0.15
+}

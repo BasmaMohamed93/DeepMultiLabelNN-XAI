@@ -7,7 +7,7 @@ Architecture (exactly what produces every NN number in the revision):
   head   : Linear(64, L) -> sigmoid
 Loss     : class-weighted BCE with label smoothing
 Optimiser: AdamW + cosine annealing, early stopping on validation loss.
-Switches allow the architecture ablations (no skip, no BN, ReLU, no smoothing, no weights).
+Switches allow the ablations requested by the reviewers (no skip, no BN, ReLU, no smoothing, no weights).
 """
 import numpy as np
 
