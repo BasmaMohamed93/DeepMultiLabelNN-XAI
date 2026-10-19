@@ -18,6 +18,17 @@ feature-space nearest-neighbour) priors are computed out-of-fold. Evaluation use
 | vep.csv.gz | Ensembl VEP annotation of every rsID |
 | interactions.csv | DGIdb gene-drug interactions (PharmGKB- and FDA-sourced rows are removed inside pairwise.py) |
 
+## Raw input files
+| File | Source |
+|---|---|
+| clinvar_pgx.vcf.gz | ClinVar drug_response records (GRCh37 VCF, filtered to pharmacogenomic records, file date 2026-09-23); ClinVar data are in the public domain |
+| pharmgkb_clinical_annotations.tsv.gz, pharmgkb_clinical_ann_alleles.tsv.gz | PharmGKB/ClinPGx clinical annotations (clinical_annotations.tsv, clinical_ann_alleles.tsv; created 2025-07-05) |
+| pharmgkb_var_drug_ann.tsv.gz | PharmGKB/ClinPGx variant annotations (var_drug_ann.tsv; created 2026-09-05) |
+
+PharmGKB/ClinPGx files are redistributed unchanged (gzip-compressed) under the Creative Commons Attribution-ShareAlike 4.0
+licence (LICENSE_PharmGKB.txt); please cite ClinPGx (https://www.clinpgx.org/page/citingClinpgx).
+labels.py builds label_records_raw.csv and clinvar_pgx_records.csv from these files, and r2_alleles.py builds allele_status.json.
+
 ## Code
 | File | Purpose |
 |---|---|

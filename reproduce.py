@@ -1,11 +1,15 @@
 """Reproduce every DeepMultiLabelNN-XAI number reported in the manuscript.
 
 Usage (from this folder):
-    python reproduce.py            # train all runs (about 2-3 h on 2 CPU cores), then print the tables
+    python reproduce.py            # rebuild the labels, train all runs and run every analysis (several hours on 2 CPU cores), then print the tables
     python reproduce.py --tables   # only print the tables from existing results/*.json
 
-Runs: 4 datasets (all, high_evidence, pharmgkb_only, no_tramadol) x 2 settings (known genes = random variant split;
-unseen genes = gene-disjoint split) x 5 seeds, plus the stacking-only model and the ablations on the main dataset.
+Steps: (1) variant-level labels from the public ClinVar and PharmGKB files (labels.py); (2) 4 datasets (all, high_evidence,
+pharmgkb_only, no_tramadol) x 2 settings (known genes = random variant split; unseen genes = gene-disjoint split) x 5 seeds,
+plus the stacking-only model and the ablations on the main dataset; (3) the analyses of the second revision (results_r2/:
+source confounding, assumed negative class, multi-allelic variants, locus-disjoint and temporal hold-out, paired comparisons,
+calibration, negative-sampling ratios, explanation stability, drug-retention rule, 95% CIs and Figures 5, S1-S2).
+Finished runs are skipped, so an interrupted run can be restarted with the same command.
 """
 import sys, os, glob, json, subprocess
 import numpy as np, pandas as pd
@@ -13,6 +17,7 @@ import numpy as np, pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__)); os.chdir(HERE)
 
 if '--tables' not in sys.argv:
+    subprocess.run([sys.executable, 'labels.py'], check=True)                                # labels from the public files
     import model
     os.makedirs('results_components', exist_ok=True)
     os.makedirs('results', exist_ok=True)
@@ -27,6 +32,11 @@ if '--tables' not in sys.argv:
                     model.run(ds, st, sd, use_region=True, use_knn=False)                    # ablation: no kNN prior
                     model.run(ds, st, sd, use_region=False, use_knn=True)                    # ablation: no regional prior
     for script in ['summary.py', 'confound_by_source.py', 'extras.py', 'labelprop_baseline.py', 'gene_only_table.py', 'hybrid_components.py', 'additional_analyses.py', 'tcav_analysis.py', 'make_numbers.py', 'fig_pipeline.py', 'fig_results.py', 'fig_compare.py', 'fig_components.py']:
+        subprocess.run([sys.executable, script], check=True)
+    # second revision: additional runs (results_r2/) and analyses
+    for script in ['r2_queue.py', 'r2_queue2.py', 'r2_summary.py', 'r2_analyses.py', 'r2_source_auc.py', 'r2_alleles.py',
+                   'r2_allele_eval.py', 'r2_misc.py', 'r2_stats.py', 'r2_metrics_extra.py', 'r2_temporal_eval.py', 'r2_curated.py',
+                   'r2_xai_stability.py', 'r2_drug_rule.py', 'r2_split_counts.py', 'make_ci.py', 'fig_r2.py']:
         subprocess.run([sys.executable, script], check=True)
 
 f = lambda x: f'{np.mean(x):.3f} ± {np.std(x, ddof=1):.3f}'

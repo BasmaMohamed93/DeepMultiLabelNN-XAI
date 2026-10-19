@@ -1,4 +1,4 @@
-import sys; sys.path.insert(0,'.')
+import sys, os; os.chdir(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0,'.')
 import numpy as np, pandas as pd, re
 from build_dataset import build
 V,Y,drugs,_=build()
@@ -18,7 +18,7 @@ def vep_alt(row):
     if str(row.strand) in ('-1','-1.0'): alt=alt.translate(comp)
     return alt
 V['vep_alt']=V.apply(vep_alt,axis=1)
-cv=pd.read_csv('/home/claude/v2/clinvar_pgx_records.csv')
+cv=pd.read_csv('clinvar_pgx_records.csv')
 cv=cv[cv.CLNSIG.astype(str).str.contains('drug_response')]
 cva=cv.groupby('rs').alt.apply(set)
 L=pd.read_csv('label_records_raw.csv'); src=L.groupby('variant').source.apply(set)
@@ -29,11 +29,11 @@ for rs in multi:
     s=src.get(rs,set())
     if 'ClinVar' in s and rs in cva:
         rows.append(('ClinVar',a in cva[rs]))
-va=pd.read_csv('/home/claude/v2/raw/ddecc963-variantAnnotations_1/var_drug_ann.tsv',sep='\t')
+va=pd.read_csv('pharmgkb_var_drug_ann.tsv.gz',sep='\t')
 va=va[va['Variant/Haplotypes'].isin(multi)]
 vaa=va.groupby('Variant/Haplotypes').Alleles.apply(lambda x: set(''.join(str(i) for i in x if str(i)!='nan').replace('+','').replace('/','').replace(' ','').upper()))
-ca=pd.read_csv('/home/claude/v2/raw/25eff430-clinicalAnnotations_1/clinical_annotations.tsv',sep='\t')
-cal=pd.read_csv('/home/claude/v2/raw/25eff430-clinicalAnnotations_1/clinical_ann_alleles.tsv',sep='\t')
+ca=pd.read_csv('pharmgkb_clinical_annotations.tsv.gz',sep='\t')
+cal=pd.read_csv('pharmgkb_clinical_ann_alleles.tsv.gz',sep='\t')
 cal=cal.merge(ca[['Clinical Annotation ID','Variant/Haplotypes']],on='Clinical Annotation ID')
 cal=cal[cal['Variant/Haplotypes'].isin(multi)]
 caa=cal.groupby('Variant/Haplotypes')['Genotype/Allele'].apply(lambda x: set(''.join(str(i) for i in x).upper()))
